@@ -1,6 +1,11 @@
+import { connectDB } from './database/db';
 import * as express from "express";
 import { errorHandler } from './middlewares/errorMiddleware';
 import { PORT } from "./utils/config";
+import * as Colors from "colors.ts";
+Colors.colors("","")
+
+connectDB();
 
 const app = express();
 
