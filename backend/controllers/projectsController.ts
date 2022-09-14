@@ -62,13 +62,37 @@ const getProject = asyncHandler(async (req: Request, res: Response) => {
 // @route PUT /api/projects/:id
 // @access Private
 const updateProject = asyncHandler(async (req: Request, res: Response) => {
-  res.status(200).json({ message: `Update Project ${req.params.id}` });
+  if (!req.body.title) {
+    res.status(400);
+    throw new Error("Project title is required");
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    res.status(400);
+    throw new Error("Invalid project id");
+  }
+
+  const project = await Project.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+  });
+
+  if (!project) {
+    res.status(404);
+    throw new Error("Project not found");
+  }
+
+  res.status(200).json(project);
 });
 
 // @desc Delete a project
 // @route DELETE /api/projects/:id
 // @access Private
 const deleteProject = asyncHandler(async (req: Request, res: Response) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    res.status(400);
+    throw new Error("Invalid project id");
+  }
+
   const project = await Project.findByIdAndDelete(req.params.id);
 
   if (!project) {
