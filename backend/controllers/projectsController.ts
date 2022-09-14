@@ -1,19 +1,41 @@
 import { Response, Request } from "express";
 const asyncHandler = require("express-async-handler");
 
+const Project = require("../models/projectModel");
+
 // @desc Get all projects
 // @route GET /api/projects
 // @access Public
 const getProjects = asyncHandler(async (req: Request, res: Response) => {
   const projects = await Project.find();
-  res.status(200).json({ message: "Get All Projects" });
+  res.status(200).json(projects);
 });
 
 // @desc Create a project
 // @route POST /api/projects
 // @access Private
 const createProject = asyncHandler(async (req: Request, res: Response) => {
-  res.status(201).json({ message: "Create a Project" });
+  if (!req.body.title) {
+    res.status(400);
+    throw new Error("Project title is required");
+  }
+  
+  // check for duplicate title
+  const projectExists = await Project.findOne({ title: req.body.title });
+
+  if (projectExists) {
+    res.status(400);
+    throw new Error("Project title already exists");
+  }
+
+  const project = await Project.create(req.body);
+
+  if (!project) {
+    res.status(400);
+    throw new Error("Project not created");
+  }
+
+  res.status(201).json(project);
 });
 
 // @desc Get a project
