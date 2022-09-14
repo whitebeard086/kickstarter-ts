@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 import { Response, Request } from "express";
 const asyncHandler = require("express-async-handler");
 
@@ -19,7 +20,7 @@ const createProject = asyncHandler(async (req: Request, res: Response) => {
     res.status(400);
     throw new Error("Project title is required");
   }
-  
+
   // check for duplicate title
   const projectExists = await Project.findOne({ title: req.body.title });
 
@@ -42,7 +43,19 @@ const createProject = asyncHandler(async (req: Request, res: Response) => {
 // @route GET /api/projects/:id
 // @access Public
 const getProject = asyncHandler(async (req: Request, res: Response) => {
-  res.status(200).json({ message: `Get Project ${req.params.id}` });
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    res.status(400);
+    throw new Error("Invalid project id");
+  }
+
+  const project = await Project.findById(req.params.id);
+
+  if (!project) {
+    res.status(404);
+    throw new Error("Project not found");
+  }
+
+  res.status(200).json(project);
 });
 
 // @desc Update a project
@@ -56,7 +69,16 @@ const updateProject = asyncHandler(async (req: Request, res: Response) => {
 // @route DELETE /api/projects/:id
 // @access Private
 const deleteProject = asyncHandler(async (req: Request, res: Response) => {
-  res.status(200).json({ message: `Delete Project ${req.params.id}` });
+  const project = await Project.findByIdAndDelete(req.params.id);
+
+  if (!project) {
+    res.status(404);
+    throw new Error("Project not found");
+  }
+
+  res
+    .status(200)
+    .json({ message: `Project with the ID:${req.params.id} deleted` });
 });
 
 module.exports = {
